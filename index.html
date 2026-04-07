@@ -1,58 +1,1021 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GLOBAL THERMONUCLEAR WAR</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Global Thermonuclear War</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#000;color:#00ff41;font-family:'Share Tech Mono',monospace;overflow:hidden;width:100vw;height:100vh;touch-action:none}
+#container{position:relative;width:100%;height:100%}
+#three-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1}
+.crt-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;pointer-events:none}
+.scanlines{background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);width:100%;height:100%}
+.crt-flicker{animation:flicker 0.08s infinite alternate}
+@keyframes flicker{0%{opacity:0.97}100%{opacity:1}}
+@keyframes glow{0%{text-shadow:0 0 4px #00ff41,0 0 8px #00ff41}50%{text-shadow:0 0 8px #00ff41,0 0 16px #00ff41,0 0 24px #003300}100%{text-shadow:0 0 4px #00ff41,0 0 8px #00ff41}}
+.glow-text{animation:glow 3s ease-in-out infinite}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:0.3}}
+#ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;display:flex;flex-direction:column}
+#ui-layer *{pointer-events:auto}
+#top-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 15px;font-size:clamp(11px,1.5vw,14px);background:rgba(0,0,0,0.7);border-bottom:1px solid #003300;flex-wrap:wrap;gap:5px}
+#top-bar .defcon{font-size:clamp(14px,2vw,18px);font-weight:bold}
+.defcon-1{color:#ff0000!important;text-shadow:0 0 10px #ff0000!important;animation:pulse-red 0.5s infinite}
+.defcon-2{color:#ff4400!important;text-shadow:0 0 10px #ff4400!important}
+.defcon-3{color:#ffaa00!important;text-shadow:0 0 8px #ffaa00!important}
+.defcon-4{color:#ffff00!important;text-shadow:0 0 6px #ffff00!important}
+.defcon-5{color:#00ff41!important;text-shadow:0 0 6px #00ff41!important}
+#main-area{flex:1;display:flex;position:relative;overflow:hidden}
+#terminal{position:absolute;bottom:0;left:0;width:100%;max-height:35%;background:rgba(0,0,0,0.85);border-top:1px solid #004400;padding:10px 15px;overflow-y:auto;font-size:clamp(11px,1.3vw,13px);line-height:1.6;z-index:15}
+#terminal::-webkit-scrollbar{width:4px}
+#terminal::-webkit-scrollbar-thumb{background:#004400}
+#terminal .line{margin-bottom:2px}
+.line.bright{color:#00ff41;text-shadow:0 0 8px #00ff41}
+#center-panel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:auto;max-width:700px;width:90%;z-index:20}
+#title-screen{display:none}
+#title-screen h1{font-size:clamp(18px,4vw,42px);letter-spacing:4px;margin-bottom:20px}
+#title-screen h2{font-size:clamp(12px,2vw,22px);color:#009930;margin-bottom:30px}
+#side-select{display:none;text-align:left;background:rgba(0,0,0,0.9);border:1px solid #004400;padding:clamp(15px,3vw,30px);max-width:500px;margin:0 auto}
+#side-select h3{margin-bottom:20px;text-align:center;font-size:clamp(14px,2vw,18px)}
+.side-btn{display:block;width:100%;padding:12px 20px;margin:10px 0;background:transparent;border:1px solid #00ff41;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:clamp(13px,1.5vw,16px);cursor:pointer;text-align:left;transition:all 0.2s}
+.side-btn:hover,.side-btn:active{background:#003300;box-shadow:0 0 15px rgba(0,255,65,0.3)}
+#target-panel{display:none;text-align:left;background:rgba(0,0,0,0.9);border:1px solid #004400;padding:clamp(12px,2vw,20px);max-width:550px;margin:0 auto;max-height:70vh;overflow-y:auto}
+#target-panel h3{margin-bottom:15px;text-align:center;font-size:clamp(13px,1.8vw,16px)}
+.target-btn{display:block;width:100%;padding:8px 15px;margin:5px 0;background:transparent;border:1px solid #003300;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:clamp(12px,1.3vw,14px);cursor:pointer;text-align:left;transition:all 0.2s}
+.target-btn:hover,.target-btn:active{background:#002200;border-color:#00ff41}
+.target-btn.selected{background:#004400;border-color:#00ff41;box-shadow:0 0 8px rgba(0,255,65,0.3)}
+.target-btn.selected::after{content:' [TARGETED]';color:#ff4444}
+#launch-btn{display:none;margin:15px auto;padding:12px 40px;background:#330000;border:2px solid #ff0000;color:#ff0000;font-family:'Share Tech Mono',monospace;font-size:clamp(14px,1.5vw,16px);cursor:pointer;text-shadow:0 0 8px #ff0000;transition:all 0.2s}
+#launch-btn:hover,#launch-btn:active{background:#550000;box-shadow:0 0 20px rgba(255,0,0,0.5)}
+#end-screen{display:none;text-align:center;background:rgba(0,0,0,0.9);padding:clamp(20px,3vw,40px);max-width:650px;margin:0 auto;border:1px solid #004400}
+#end-screen h2{font-size:clamp(20px,3vw,28px);margin-bottom:20px;color:#ff0000;text-shadow:0 0 15px #ff0000}
+#end-screen p{margin:10px 0;font-size:clamp(13px,1.5vw,16px);line-height:1.8}
+#end-screen .chess-msg{color:#00ff41;margin-top:25px;font-size:clamp(14px,1.8vw,18px);border-top:1px solid #004400;padding-top:20px}
+#play-again-btn{margin-top:20px;padding:10px 30px;background:transparent;border:1px solid #00ff41;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:14px;cursor:pointer}
+#play-again-btn:hover{background:#003300}
+#casualty-display{display:none;position:absolute;top:50px;right:10px;background:rgba(0,0,0,0.9);border:1px solid #440000;padding:12px;font-size:clamp(11px,1.2vw,13px);min-width:180px;max-width:240px;z-index:20}
+#casualty-display h4{color:#ff4444;margin-bottom:8px;text-align:center;font-size:clamp(12px,1.3vw,15px)}
+.cas-line{margin:3px 0;display:flex;justify-content:space-between;gap:8px}
+.cas-total{border-top:1px solid #440000;margin-top:8px;padding-top:8px;color:#ff0000;font-weight:bold}
+.blink{animation:blinker 1s step-start infinite}
+@keyframes blinker{50%{opacity:0}}
+/* View controls */
+#view-controls{position:absolute;bottom:calc(35% + 10px);left:10px;z-index:20;display:flex;flex-direction:column;gap:6px;pointer-events:auto}
+.view-btn{background:rgba(0,0,0,0.8);border:1px solid #004400;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:clamp(11px,1.2vw,13px);padding:6px 10px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.view-btn:hover,.view-btn:active{background:#003300;border-color:#00ff41}
+.view-btn.active{background:#004400;border-color:#00ff41;box-shadow:0 0 8px rgba(0,255,65,0.2)}
+#zoom-controls{display:flex;gap:4px}
+#zoom-controls .view-btn{width:36px;text-align:center;font-size:16px;padding:4px}
+</style>
 </head>
-<body class="crt">
-  <div id="game-container">
+<body>
+<div id="container">
+<canvas id="three-canvas"></canvas>
+<div class="crt-overlay crt-flicker"><div class="scanlines"></div></div>
+<div id="ui-layer">
+<div id="top-bar">
+<div><span id="side-label">WOPR STRATEGIC COMMAND</span></div>
+<div class="defcon defcon-5" id="defcon-display">DEFCON 5</div>
+<div><span id="missile-count">MISSILES: --</span></div>
+</div>
+<div id="main-area">
+<div id="center-panel">
+<div id="title-screen"><h1 class="glow-text" id="title-text"></h1><h2 id="subtitle-text"></h2><div id="start-prompt" style="display:none"><br><span class="blink">[ PRESS ANY KEY OR TAP TO CONTINUE ]</span></div></div>
+<div id="side-select"><h3>WHICH SIDE DO YOU WANT?</h3><button class="side-btn" onclick="selectSide('us')">1. UNITED STATES</button><button class="side-btn" onclick="selectSide('ussr')">2. SOVIET UNION</button></div>
+<div id="target-panel"><h3 id="target-title">SELECT TARGETS (3-6)</h3><div id="target-list"></div><button id="launch-btn" onclick="launchMissiles()">*** LAUNCH ***</button></div>
+<div id="end-screen"><h2 id="winner-text"></h2><div id="final-casualties"></div><p class="chess-msg" id="chess-msg"></p><button id="play-again-btn" onclick="location.reload()">PLAY AGAIN</button></div>
+</div>
+<div id="view-controls">
+<button class="view-btn active" id="btn-globe" onclick="setViewMode('globe')">GLOBE</button>
+<button class="view-btn" id="btn-map" onclick="setViewMode('map')">MAP</button>
+<div id="zoom-controls">
+<button class="view-btn" onclick="zoomIn()">+</button>
+<button class="view-btn" onclick="zoomOut()">&minus;</button>
+</div>
+</div>
+<div id="terminal"></div>
+</div>
+</div>
+<div id="casualty-display"><h4>CASUALTIES</h4><div id="cas-content"></div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+<script>
+"use strict";
+// ========== AUDIO ==========
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function resumeAudio(){if(audioCtx.state==='suspended')audioCtx.resume();}
+function beep(freq,dur,vol){
+  freq=freq||800;dur=dur||0.08;vol=vol||0.15;
+  resumeAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='square';o.frequency.value=freq;g.gain.setValueAtTime(vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
+}
+function alarm(){
+  resumeAudio();
+  for(let i=0;i<6;i++){setTimeout(()=>beep(600,0.15,0.2),i*300);setTimeout(()=>beep(900,0.15,0.2),i*300+150);}
+}
+function rumble(dur){
+  dur=dur||1.5;resumeAudio();
+  const bufSize=audioCtx.sampleRate*dur,buf=audioCtx.createBuffer(1,bufSize,audioCtx.sampleRate);
+  const data=buf.getChannelData(0);for(let i=0;i<bufSize;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(bufSize*0.3));
+  const src=audioCtx.createBufferSource(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
+  f.type='lowpass';f.frequency.value=150;g.gain.value=0.4;
+  src.buffer=buf;src.connect(f);f.connect(g);g.connect(audioCtx.destination);src.start();
+}
 
-    <!-- UI overlay on top of the 3D globe -->
-    <div id="ui-overlay">
+// ========== GAME STATE ==========
+let gamePhase='init'; // init,title,choose,strategy,war,aftermath,end
+let playerSide='';
+let selectedTargets=[];
+let defconLevel=5;
+let activeMissiles=[];
+let explosionsList=[];
+let casualtyCount={us:0,ussr:0};
+let destroyedCities=new Set();
+let missilesFired={player:0,enemy:0};
+let viewMode='globe'; // 'globe' or 'map'
+let viewTransition=0; // 0=globe, 1=map, animates between
+let targetZoom=4;
+let currentZoom=4;
+const MIN_ZOOM=2;
+const MAX_ZOOM=12;
 
-      <!-- Top status bar -->
-      <div id="status-bar">
-        <div id="defcon" class="defcon5">DEFCON 5</div>
-        <div id="clock"></div>
-        <div id="missile-count">MISSILES: --</div>
-      </div>
+// ========== CITY DATA ==========
+const cities = {
+  us: [
+    {name:'WASHINGTON DC',lat:38.9,lng:-77.0,pop:5300000},
+    {name:'NEW YORK',lat:40.7,lng:-74.0,pop:18800000},
+    {name:'LOS ANGELES',lat:34.05,lng:-118.24,pop:13200000},
+    {name:'CHICAGO',lat:41.88,lng:-87.63,pop:9500000},
+    {name:'HOUSTON',lat:29.76,lng:-95.37,pop:6300000},
+    {name:'SEATTLE',lat:47.6,lng:-122.33,pop:3900000}
+  ],
+  ussr: [
+    {name:'MOSCOW',lat:55.75,lng:37.62,pop:12500000},
+    {name:'LENINGRAD',lat:59.93,lng:30.32,pop:5400000},
+    {name:'KIEV',lat:50.45,lng:30.52,pop:3000000},
+    {name:'STALINGRAD',lat:48.72,lng:44.5,pop:1000000},
+    {name:'NOVOSIBIRSK',lat:55.03,lng:82.92,pop:1600000},
+    {name:'VLADIVOSTOK',lat:43.12,lng:131.89,pop:600000}
+  ]
+};
 
-      <!-- Live casualty counter -->
-      <div id="score-display">
-        <div id="us-casualties">US CASUALTIES: 0</div>
-        <div id="ussr-casualties">USSR CASUALTIES: 0</div>
-        <div id="cities-destroyed">CITIES DESTROYED: 0</div>
-      </div>
+// ========== CONTINENT OUTLINES (lat/lng) ==========
+const continents = {
+  northAmerica:[[60,-140],[65,-168],[72,-168],[71,-155],[60,-147],[58,-137],[55,-132],[50,-128],[48,-124],[40,-124],[33,-117],[28,-115],[23,-110],[17,-100],[15,-92],[18,-88],[21,-87],[25,-80],[30,-81],[30,-85],[29,-90],[26,-97],[28,-97],[33,-97],[30,-88],[33,-80],[35,-75],[39,-74],[41,-70],[43,-70],[45,-67],[47,-63],[48,-59],[47,-53],[52,-56],[56,-60],[60,-64],[58,-68],[51,-80],[55,-80],[58,-78],[60,-95],[62,-114],[64,-140],[60,-140]],
+  southAmerica:[[12,-72],[10,-76],[8,-77],[4,-77],[0,-80],[-5,-81],[-6,-77],[-13,-76],[-15,-75],[-18,-70],[-23,-70],[-27,-71],[-30,-71],[-33,-72],[-40,-73],[-43,-74],[-46,-76],[-50,-75],[-53,-71],[-55,-69],[-55,-66],[-52,-70],[-48,-66],[-42,-64],[-37,-57],[-33,-53],[-28,-49],[-23,-41],[-13,-39],[-5,-35],[-2,-50],[2,-53],[6,-57],[8,-60],[7,-62],[10,-65],[12,-72]],
+  europe:[[36,-10],[37,-8],[37,-2],[38,0],[40,-1],[43,3],[43,8],[44,8],[45,14],[42,18],[40,20],[38,24],[36,28],[38,26],[41,29],[42,28],[43,40],[47,40],[50,40],[55,38],[58,30],[60,25],[64,26],[68,28],[70,30],[71,28],[70,20],[63,10],[58,6],[54,9],[55,12],[57,10],[56,8],[54,8],[54,13],[52,5],[51,4],[48,-5],[44,-9],[40,-9],[36,-10]],
+  africa:[[35,-5],[37,10],[33,12],[30,32],[22,37],[15,43],[12,44],[2,42],[-2,41],[-11,40],[-15,41],[-25,35],[-34,26],[-34,18],[-30,17],[-22,14],[-17,12],[-12,14],[-5,12],[5,1],[5,-4],[4,-8],[7,-13],[11,-16],[15,-17],[20,-17],[27,-13],[32,-8],[35,-5]],
+  asia:[[42,28],[43,40],[47,40],[50,40],[55,38],[58,30],[60,25],[64,26],[68,28],[70,30],[72,50],[75,60],[77,70],[77,105],[72,130],[67,140],[64,143],[60,163],[55,163],[50,143],[46,143],[43,146],[43,132],[40,130],[37,127],[35,129],[34,131],[39,120],[35,105],[22,108],[20,106],[10,106],[8,105],[0,104],[-8,114],[-8,120],[0,120],[5,120],[10,117],[15,120],[22,108],[22,98],[28,97],[22,90],[20,93],[16,82],[8,77],[7,80],[12,80],[15,74],[24,69],[25,62],[27,57],[24,58],[15,52],[13,45],[12,44],[15,43],[22,37],[30,32],[33,12],[37,10],[40,30],[42,28]],
+  australia:[[-12,132],[-14,127],[-22,114],[-28,114],[-32,116],[-35,118],[-35,138],[-38,146],[-37,150],[-28,154],[-24,152],[-16,146],[-12,142],[-14,136],[-12,132]]
+};
 
-      <!-- Target selection panel -->
-      <div id="side-panel">
-        <h3>SELECT TARGETS</h3>
-        <div id="target-list"></div>
-        <button id="launch-btn">LAUNCH MISSILES</button>
-      </div>
+// ========== THREE.JS SETUP ==========
+const canvas = document.getElementById('three-canvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.z = currentZoom;
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setClearColor(0x000000);
 
-      <!-- Terminal output -->
-      <div id="terminal"></div>
-    </div>
+// All globe objects in this group (rotated together)
+const globeGroup = new THREE.Group();
+scene.add(globeGroup);
 
-    <!-- Title / intro screen -->
-    <div id="title-screen">
-      <div id="title-text"></div>
-      <div id="subtitle-text"></div>
-      <div id="choice-panel">
-        <p>WHICH SIDE DO YOU WANT?</p>
-        <button class="choice-btn" data-side="us">1. UNITED STATES</button>
-        <button class="choice-btn" data-side="ussr">2. SOVIET UNION</button>
-      </div>
-    </div>
+// All flat-map objects in this group (shown/hidden based on mode)
+const mapGroup = new THREE.Group();
+mapGroup.visible = false;
+scene.add(mapGroup);
 
-  </div>
+const GLOBE_RADIUS = 1.5;
+const MAP_WIDTH = 7;
+const MAP_HEIGHT = 3.5;
 
-  <!-- Game modules (ES modules) -->
-  <script type="module" src="js/main.js"></script>
+// ========== COORDINATE CONVERSION ==========
+function latLngToGlobe(lat, lng, r) {
+  r = r || GLOBE_RADIUS;
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lng + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),
+    r * Math.cos(phi),
+    r * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+function latLngToFlat(lat, lng) {
+  const x = (lng / 180) * (MAP_WIDTH / 2);
+  const y = (lat / 90) * (MAP_HEIGHT / 2);
+  return new THREE.Vector3(x, y, 0);
+}
+
+function latLngToVec3(lat, lng, r) {
+  // Returns position based on current viewTransition (interpolates globe<->flat)
+  const gp = latLngToGlobe(lat, lng, r);
+  const fp = latLngToFlat(lat, lng);
+  return gp; // default to globe; flat handled separately
+}
+
+// ========== BUILD GLOBE ==========
+const globeWireGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 36, 24);
+const globeWireMat = new THREE.MeshBasicMaterial({color:0x003311, wireframe:true, transparent:true, opacity:0.25});
+const globeWire = new THREE.Mesh(globeWireGeo, globeWireMat);
+globeGroup.add(globeWire);
+
+// Atmosphere glow
+const glowGeo = new THREE.SphereGeometry(GLOBE_RADIUS*1.03, 36, 24);
+const glowMat = new THREE.MeshBasicMaterial({color:0x00ff41, wireframe:true, transparent:true, opacity:0.04});
+globeGroup.add(new THREE.Mesh(glowGeo, glowMat));
+
+// Globe grid lines
+const gridMat = new THREE.LineBasicMaterial({color:0x002200, transparent:true, opacity:0.2});
+for(let lat=-60;lat<=60;lat+=30){
+  const pts=[];for(let lng=0;lng<=360;lng+=5)pts.push(latLngToGlobe(lat,lng,GLOBE_RADIUS*1.001));
+  globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),gridMat));
+}
+for(let lng=0;lng<360;lng+=30){
+  const pts=[];for(let lat=-90;lat<=90;lat+=5)pts.push(latLngToGlobe(lat,lng,GLOBE_RADIUS*1.001));
+  globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),gridMat));
+}
+
+// Globe continents
+const contMat = new THREE.LineBasicMaterial({color:0x00ff41, transparent:true, opacity:0.65});
+Object.values(continents).forEach(coords => {
+  const pts = coords.map(([lat,lng]) => latLngToGlobe(lat, lng, GLOBE_RADIUS*1.003));
+  globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), contMat));
+});
+
+// ========== BUILD FLAT MAP ==========
+// Map border
+const borderPts = [
+  new THREE.Vector3(-MAP_WIDTH/2, -MAP_HEIGHT/2, 0),
+  new THREE.Vector3(MAP_WIDTH/2, -MAP_HEIGHT/2, 0),
+  new THREE.Vector3(MAP_WIDTH/2, MAP_HEIGHT/2, 0),
+  new THREE.Vector3(-MAP_WIDTH/2, MAP_HEIGHT/2, 0),
+  new THREE.Vector3(-MAP_WIDTH/2, -MAP_HEIGHT/2, 0)
+];
+const borderMat = new THREE.LineBasicMaterial({color:0x004400, transparent:true, opacity:0.6});
+mapGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(borderPts), borderMat));
+
+// Map grid
+const mapGridMat = new THREE.LineBasicMaterial({color:0x002200, transparent:true, opacity:0.2});
+for(let lat=-60;lat<=60;lat+=30){
+  const pts=[latLngToFlat(lat,-180),latLngToFlat(lat,180)];
+  mapGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mapGridMat));
+}
+for(let lng=-150;lng<=180;lng+=30){
+  const pts=[latLngToFlat(-90,lng),latLngToFlat(90,lng)];
+  mapGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mapGridMat));
+}
+
+// Map continents
+const mapContMat = new THREE.LineBasicMaterial({color:0x00ff41, transparent:true, opacity:0.65});
+Object.values(continents).forEach(coords => {
+  const pts = coords.map(([lat,lng]) => latLngToFlat(lat, lng));
+  mapGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mapContMat));
+});
+
+// ========== CITY DOTS (both views) ==========
+const cityMeshes = {};
+function createCityDots(cityList, side) {
+  cityList.forEach(city => {
+    // Globe dot
+    const gpos = latLngToGlobe(city.lat, city.lng, GLOBE_RADIUS*1.01);
+    const gdot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.02, 8, 8),
+      new THREE.MeshBasicMaterial({color: side==='us'?0x00aaff:0xff4444})
+    );
+    gdot.position.copy(gpos);
+    globeGroup.add(gdot);
+
+    // Globe ring
+    const gring = new THREE.Mesh(
+      new THREE.RingGeometry(0.025, 0.04, 16),
+      new THREE.MeshBasicMaterial({color: side==='us'?0x00aaff:0xff4444, transparent:true, opacity:0.5, side:THREE.DoubleSide})
+    );
+    gring.position.copy(gpos);
+    gring.lookAt(new THREE.Vector3(0,0,0));
+    globeGroup.add(gring);
+
+    // Flat dot
+    const fpos = latLngToFlat(city.lat, city.lng);
+    const fdot = new THREE.Mesh(
+      new THREE.CircleGeometry(0.04, 12),
+      new THREE.MeshBasicMaterial({color: side==='us'?0x00aaff:0xff4444})
+    );
+    fdot.position.copy(fpos);
+    fdot.position.z = 0.01;
+    mapGroup.add(fdot);
+
+    // Flat ring
+    const fring = new THREE.Mesh(
+      new THREE.RingGeometry(0.05, 0.07, 16),
+      new THREE.MeshBasicMaterial({color: side==='us'?0x00aaff:0xff4444, transparent:true, opacity:0.5, side:THREE.DoubleSide})
+    );
+    fring.position.copy(fpos);
+    fring.position.z = 0.01;
+    mapGroup.add(fring);
+
+    // Label
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 256; labelCanvas.height = 32;
+    const ctx2d = labelCanvas.getContext('2d');
+    ctx2d.font = '16px Share Tech Mono, monospace';
+    ctx2d.fillStyle = side==='us'?'#00aaff':'#ff4444';
+    ctx2d.fillText(city.name, 4, 20);
+    const labelTex = new THREE.CanvasTexture(labelCanvas);
+    const labelMat = new THREE.SpriteMaterial({map:labelTex, transparent:true, opacity:0.7});
+    const labelSprite = new THREE.Sprite(labelMat);
+    labelSprite.position.set(fpos.x + 0.15, fpos.y + 0.08, 0.02);
+    labelSprite.scale.set(0.6, 0.075, 1);
+    mapGroup.add(labelSprite);
+
+    cityMeshes[city.name] = {gdot, gring, fdot, fring, side, city};
+  });
+}
+createCityDots(cities.us, 'us');
+createCityDots(cities.ussr, 'ussr');
+
+// ========== VIEW MODE & ZOOM ==========
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('btn-globe').classList.toggle('active', mode==='globe');
+  document.getElementById('btn-map').classList.toggle('active', mode==='map');
+  beep(800, 0.05, 0.1);
+
+  if(mode==='globe') {
+    globeGroup.visible = true;
+    mapGroup.visible = false;
+    targetZoom = 4;
+  } else {
+    globeGroup.visible = false;
+    mapGroup.visible = true;
+    targetZoom = 5;
+  }
+}
+
+function zoomIn() {
+  targetZoom = Math.max(MIN_ZOOM, targetZoom - 0.8);
+  beep(1000, 0.03, 0.08);
+}
+
+function zoomOut() {
+  targetZoom = Math.min(MAX_ZOOM, targetZoom + 0.8);
+  beep(600, 0.03, 0.08);
+}
+
+// ========== MOUSE/TOUCH CONTROLS ==========
+let isDragging = false, prevMouse = {x:0,y:0};
+let autoRotate = true;
+let pinchDist = 0;
+let mapPanX = 0, mapPanY = 0, targetPanX = 0, targetPanY = 0;
+
+canvas.addEventListener('mousedown', e => {
+  isDragging=true; prevMouse={x:e.clientX,y:e.clientY}; autoRotate=false; resumeAudio();
+});
+canvas.addEventListener('mousemove', e => {
+  if(!isDragging) return;
+  const dx = e.clientX - prevMouse.x, dy = e.clientY - prevMouse.y;
+  if(viewMode==='globe') {
+    globeGroup.rotation.y += dx * 0.005;
+    globeGroup.rotation.x += dy * 0.005;
+    globeGroup.rotation.x = Math.max(-1.2, Math.min(1.2, globeGroup.rotation.x));
+  } else {
+    targetPanX += dx * 0.01;
+    targetPanY -= dy * 0.01;
+  }
+  prevMouse = {x:e.clientX, y:e.clientY};
+});
+canvas.addEventListener('mouseup', () => isDragging=false);
+canvas.addEventListener('mouseleave', () => isDragging=false);
+
+// Mouse wheel zoom
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.3 : -0.3;
+  targetZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, targetZoom + delta));
+}, {passive:false});
+
+// Touch: drag + pinch-to-zoom
+canvas.addEventListener('touchstart', e => {
+  resumeAudio();
+  if(e.touches.length === 1) {
+    isDragging = true; autoRotate = false;
+    prevMouse = {x:e.touches[0].clientX, y:e.touches[0].clientY};
+  } else if(e.touches.length === 2) {
+    isDragging = false;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    pinchDist = Math.sqrt(dx*dx + dy*dy);
+  }
+}, {passive:true});
+
+canvas.addEventListener('touchmove', e => {
+  if(e.touches.length === 1 && isDragging) {
+    const t = e.touches[0];
+    const dx = t.clientX - prevMouse.x, dy = t.clientY - prevMouse.y;
+    if(viewMode==='globe') {
+      globeGroup.rotation.y += dx * 0.005;
+      globeGroup.rotation.x += dy * 0.005;
+      globeGroup.rotation.x = Math.max(-1.2, Math.min(1.2, globeGroup.rotation.x));
+    } else {
+      targetPanX += dx * 0.008;
+      targetPanY -= dy * 0.008;
+    }
+    prevMouse = {x:t.clientX, y:t.clientY};
+  } else if(e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const newDist = Math.sqrt(dx*dx + dy*dy);
+    if(pinchDist > 0) {
+      const scale = pinchDist / newDist;
+      targetZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, targetZoom * scale));
+    }
+    pinchDist = newDist;
+  }
+}, {passive:true});
+
+canvas.addEventListener('touchend', e => {
+  if(e.touches.length < 2) pinchDist = 0;
+  if(e.touches.length === 0) isDragging = false;
+}, {passive:true});
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ========== MISSILE ARCS ==========
+function createMissileArc(fromCity, toCity, color, onComplete) {
+  if(viewMode==='globe' || true) { // always create both
+    // Globe arc
+    const gs = latLngToGlobe(fromCity.lat, fromCity.lng, GLOBE_RADIUS*1.01);
+    const ge = latLngToGlobe(toCity.lat, toCity.lng, GLOBE_RADIUS*1.01);
+    const gm = gs.clone().add(ge).multiplyScalar(0.5).normalize().multiplyScalar(GLOBE_RADIUS*1.8);
+    const gCurve = new THREE.QuadraticBezierCurve3(gs, gm, ge);
+
+    const gTrailGeo = new THREE.BufferGeometry();
+    const gTrailMat = new THREE.LineBasicMaterial({color:color, transparent:true, opacity:0.8});
+    const gTrailLine = new THREE.Line(gTrailGeo, gTrailMat);
+    globeGroup.add(gTrailLine);
+    const gHead = new THREE.Mesh(
+      new THREE.SphereGeometry(0.015, 6, 6),
+      new THREE.MeshBasicMaterial({color:0xffffff})
+    );
+    globeGroup.add(gHead);
+
+    // Flat arc
+    const fs = latLngToFlat(fromCity.lat, fromCity.lng);
+    const fe = latLngToFlat(toCity.lat, toCity.lng);
+    const fmid = fs.clone().add(fe).multiplyScalar(0.5);
+    fmid.y += fs.distanceTo(fe) * 0.3;
+    fmid.z = 0.05;
+    const fCurve = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(fs.x, fs.y, 0.02),
+      fmid,
+      new THREE.Vector3(fe.x, fe.y, 0.02)
+    );
+
+    const fTrailGeo = new THREE.BufferGeometry();
+    const fTrailMat = new THREE.LineBasicMaterial({color:color, transparent:true, opacity:0.8});
+    const fTrailLine = new THREE.Line(fTrailGeo, fTrailMat);
+    mapGroup.add(fTrailLine);
+    const fHead = new THREE.Mesh(
+      new THREE.CircleGeometry(0.03, 8),
+      new THREE.MeshBasicMaterial({color:0xffffff})
+    );
+    mapGroup.add(fHead);
+
+    const missile = {
+      gCurve, gTrailLine, gTrailGeo, gHead,
+      fCurve, fTrailLine, fTrailGeo, fHead,
+      totalPoints:80, progress:0,
+      speed: 0.012 + Math.random()*0.005,
+      onComplete, done:false, toCity, color
+    };
+    activeMissiles.push(missile);
+    return missile;
+  }
+}
+
+function updateMissiles(delta) {
+  activeMissiles.forEach(m => {
+    if(m.done) return;
+    m.progress += m.speed;
+    if(m.progress >= 1) {
+      m.progress = 1;
+      m.done = true;
+      globeGroup.remove(m.gHead);
+      mapGroup.remove(m.fHead);
+      createExplosion(m.toCity);
+      rumble(1);
+      if(m.onComplete) m.onComplete();
+      return;
+    }
+
+    const drawCount = Math.floor(m.progress * m.totalPoints);
+
+    // Update globe trail
+    const gPts = [];
+    for(let i=0; i<=drawCount; i++) {
+      gPts.push(m.gCurve.getPoint(i / m.totalPoints));
+    }
+    if(gPts.length > 1) {
+      m.gTrailLine.geometry.dispose();
+      m.gTrailLine.geometry = new THREE.BufferGeometry().setFromPoints(gPts);
+    }
+    m.gHead.position.copy(m.gCurve.getPoint(m.progress));
+
+    // Update flat trail
+    const fPts = [];
+    for(let i=0; i<=drawCount; i++) {
+      fPts.push(m.fCurve.getPoint(i / m.totalPoints));
+    }
+    if(fPts.length > 1) {
+      m.fTrailLine.geometry.dispose();
+      m.fTrailLine.geometry = new THREE.BufferGeometry().setFromPoints(fPts);
+    }
+    m.fHead.position.copy(m.fCurve.getPoint(m.progress));
+  });
+}
+
+// ========== EXPLOSIONS ==========
+function createExplosion(city) {
+  const gpos = latLngToGlobe(city.lat, city.lng, GLOBE_RADIUS*1.01);
+  const fpos = latLngToFlat(city.lat, city.lng);
+
+  // Globe explosion
+  const gFlash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.04, 12, 12),
+    new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:1})
+  );
+  gFlash.position.copy(gpos);
+  globeGroup.add(gFlash);
+
+  const gRings = [];
+  for(let i=0; i<3; i++) {
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.001, 0.01, 24),
+      new THREE.MeshBasicMaterial({color:0xff4400, transparent:true, opacity:0.9, side:THREE.DoubleSide})
+    );
+    ring.position.copy(gpos);
+    ring.lookAt(new THREE.Vector3(0,0,0));
+    globeGroup.add(ring);
+    gRings.push({mesh:ring, delay:i*0.3, scale:0, maxScale:0.12+i*0.06});
+  }
+
+  // Flat explosion
+  const fFlash = new THREE.Mesh(
+    new THREE.CircleGeometry(0.08, 16),
+    new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:1})
+  );
+  fFlash.position.set(fpos.x, fpos.y, 0.03);
+  mapGroup.add(fFlash);
+
+  const fRings = [];
+  for(let i=0; i<3; i++) {
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.001, 0.01, 24),
+      new THREE.MeshBasicMaterial({color:0xff4400, transparent:true, opacity:0.9, side:THREE.DoubleSide})
+    );
+    ring.position.set(fpos.x, fpos.y, 0.03);
+    mapGroup.add(ring);
+    fRings.push({mesh:ring, delay:i*0.3, scale:0, maxScale:0.2+i*0.1});
+  }
+
+  explosionsList.push({gFlash, gRings, fFlash, fRings, time:0, done:false, city});
+
+  // Casualties + tracking
+  destroyedCities.add(city.name);
+  const casualties = Math.floor(city.pop * (0.4 + Math.random()*0.4));
+  const side = cities.us.find(c => c.name===city.name) ? 'us' : 'ussr';
+  casualtyCount[side] += casualties;
+  updateCasualtyDisplay();
+
+  // Mark city as destroyed visually
+  const cm = cityMeshes[city.name];
+  if(cm) {
+    cm.gdot.material.color.setHex(0x441100);
+    cm.gring.material.color.setHex(0x441100);
+    cm.fdot.material.color.setHex(0x441100);
+    cm.fring.material.color.setHex(0x441100);
+  }
+}
+
+function updateExplosions(delta) {
+  explosionsList.forEach(exp => {
+    if(exp.done) return;
+    exp.time += delta;
+
+    // Flash fades
+    const flashOp = Math.max(0, 1 - exp.time * 2);
+    exp.gFlash.material.opacity = flashOp;
+    exp.fFlash.material.opacity = flashOp;
+    const flashScale = 1 + exp.time * 3;
+    exp.gFlash.scale.set(flashScale, flashScale, flashScale);
+    exp.fFlash.scale.set(flashScale, flashScale, flashScale);
+
+    // Rings expand
+    [exp.gRings, exp.fRings].forEach(rings => {
+      rings.forEach(r => {
+        const t = Math.max(0, exp.time - r.delay);
+        if(t > 0) {
+          r.scale = Math.min(r.maxScale, t * 0.4);
+          r.mesh.scale.set(r.scale * 20, r.scale * 20, 1);
+          r.mesh.material.opacity = Math.max(0, 0.9 - t * 0.5);
+        }
+      });
+    });
+
+    if(exp.time > 3) {
+      exp.done = true;
+      globeGroup.remove(exp.gFlash);
+      exp.gRings.forEach(r => globeGroup.remove(r.mesh));
+      mapGroup.remove(exp.fFlash);
+      exp.fRings.forEach(r => mapGroup.remove(r.mesh));
+
+      // Leave scar on globe
+      const scar = new THREE.Mesh(
+        new THREE.SphereGeometry(0.04, 8, 8),
+        new THREE.MeshBasicMaterial({color:0x441100, transparent:true, opacity:0.6})
+      );
+      scar.position.copy(latLngToGlobe(exp.city.lat, exp.city.lng, GLOBE_RADIUS*1.005));
+      globeGroup.add(scar);
+
+      // Leave scar on map
+      const fScar = new THREE.Mesh(
+        new THREE.CircleGeometry(0.06, 12),
+        new THREE.MeshBasicMaterial({color:0x441100, transparent:true, opacity:0.6})
+      );
+      const fp = latLngToFlat(exp.city.lat, exp.city.lng);
+      fScar.position.set(fp.x, fp.y, 0.005);
+      mapGroup.add(fScar);
+    }
+  });
+}
+
+// ========== TERMINAL ==========
+const terminalEl = document.getElementById('terminal');
+let typeQueue = [], isTyping = false;
+
+function addLine(text, instant, bright) {
+  return new Promise(resolve => {
+    typeQueue.push({text, instant, bright, resolve});
+    processQueue();
+  });
+}
+
+function processQueue() {
+  if(isTyping || typeQueue.length===0) return;
+  isTyping = true;
+  const {text, instant, bright, resolve} = typeQueue.shift();
+  const div = document.createElement('div');
+  div.className = 'line' + (bright?' bright':'');
+  terminalEl.appendChild(div);
+
+  if(instant) {
+    div.textContent = text;
+    terminalEl.scrollTop = terminalEl.scrollHeight;
+    isTyping = false; resolve(); processQueue();
+    return;
+  }
+
+  let idx = 0;
+  function typeChar() {
+    if(idx < text.length) {
+      div.textContent = text.substring(0, idx+1);
+      idx++;
+      if(idx%3===0) beep(200+Math.random()*400, 0.02, 0.03);
+      terminalEl.scrollTop = terminalEl.scrollHeight;
+      setTimeout(typeChar, 25);
+    } else {
+      isTyping = false; resolve(); processQueue();
+    }
+  }
+  typeChar();
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+// ========== UI UPDATES ==========
+function setDefcon(level) {
+  defconLevel = level;
+  const el = document.getElementById('defcon-display');
+  el.textContent = 'DEFCON ' + level;
+  el.className = 'defcon defcon-' + level;
+}
+
+function updateCasualtyDisplay() {
+  const el = document.getElementById('cas-content');
+  const total = casualtyCount.us + casualtyCount.ussr;
+  el.innerHTML =
+    '<div class="cas-line"><span>US:</span><span>' + casualtyCount.us.toLocaleString() + '</span></div>' +
+    '<div class="cas-line"><span>USSR:</span><span>' + casualtyCount.ussr.toLocaleString() + '</span></div>' +
+    '<div class="cas-line cas-total"><span>TOTAL:</span><span>' + total.toLocaleString() + '</span></div>' +
+    '<div class="cas-line"><span>CITIES HIT:</span><span>' + destroyedCities.size + '</span></div>';
+}
+
+// ========== GAME FLOW ==========
+async function titleSequence() {
+  gamePhase = 'title';
+  document.getElementById('title-screen').style.display = 'block';
+  const titleEl = document.getElementById('title-text');
+  const subEl = document.getElementById('subtitle-text');
+
+  await sleep(800);
+  // Typewriter title
+  const titleStr = 'GLOBAL THERMONUCLEAR WAR';
+  for(let i=0; i<titleStr.length; i++) {
+    titleEl.textContent += titleStr[i];
+    beep(300+Math.random()*300, 0.03, 0.06);
+    await sleep(80);
+  }
+  await sleep(600);
+  const subStr = 'GREETINGS, PROFESSOR FALKEN.';
+  for(let i=0; i<subStr.length; i++) {
+    subEl.textContent += subStr[i];
+    beep(250+Math.random()*200, 0.02, 0.04);
+    await sleep(50);
+  }
+  await sleep(1000);
+
+  document.getElementById('start-prompt').style.display = 'block';
+  gamePhase = 'waitclick';
+
+  // Wait for click/key to proceed
+  await new Promise(resolve => {
+    function go() {
+      document.removeEventListener('click', go);
+      document.removeEventListener('keydown', go);
+      document.removeEventListener('touchstart', go);
+      resolve();
+    }
+    document.addEventListener('click', go);
+    document.addEventListener('keydown', go);
+    document.addEventListener('touchstart', go, {passive:true});
+  });
+
+  beep(800, 0.1, 0.15);
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('start-prompt').style.display = 'none';
+
+  // Show side selection
+  gamePhase = 'choose';
+  document.getElementById('side-select').style.display = 'block';
+}
+
+function selectSide(side) {
+  beep(1000, 0.1, 0.15);
+  playerSide = side;
+  document.getElementById('side-select').style.display = 'none';
+  document.getElementById('side-label').textContent =
+    (side==='us' ? 'US' : 'USSR') + ' STRATEGIC COMMAND';
+  strategyPhase();
+}
+
+async function strategyPhase() {
+  gamePhase = 'strategy';
+  const sideName = playerSide==='us' ? 'UNITED STATES' : 'SOVIET UNION';
+  const enemySide = playerSide==='us' ? 'ussr' : 'us';
+
+  await addLine('LOGON: ' + sideName + ' STRATEGIC COMMAND', false, true);
+  await sleep(300);
+  await addLine('ACCESSING WOPR TARGETING SYSTEM...', false);
+  await sleep(500);
+  await addLine('SATELLITE UPLINK ESTABLISHED', false);
+  await sleep(300);
+
+  setDefcon(4); beep(400, 0.2, 0.15);
+  await addLine('DEFCON 4 - INCREASED READINESS', false, true);
+  await sleep(400);
+  await addLine('');
+  await addLine('SELECT TARGET CITIES FOR NUCLEAR STRIKE (3-6 TARGETS)', false, true);
+  await addLine('WARNING: ENEMY RETALIATION IS ASSURED', false, true);
+
+  // Show target panel
+  const panel = document.getElementById('target-panel');
+  panel.style.display = 'block';
+  const list = document.getElementById('target-list');
+  list.innerHTML = '';
+
+  const enemyCities = cities[enemySide];
+  enemyCities.forEach(city => {
+    const btn = document.createElement('button');
+    btn.className = 'target-btn';
+    btn.textContent = city.name + ' (POP: ' + (city.pop/1000000).toFixed(1) + 'M)';
+    btn.onclick = () => {
+      beep(800, 0.05, 0.08);
+      if(btn.classList.contains('selected')) {
+        btn.classList.remove('selected');
+        selectedTargets = selectedTargets.filter(t => t.name !== city.name);
+      } else if(selectedTargets.length < 6) {
+        btn.classList.add('selected');
+        selectedTargets.push(city);
+      }
+      document.getElementById('launch-btn').style.display =
+        selectedTargets.length >= 3 ? 'block' : 'none';
+      document.getElementById('target-title').textContent =
+        'SELECT TARGETS (' + selectedTargets.length + '/6)';
+    };
+    list.appendChild(btn);
+  });
+
+  document.getElementById('missile-count').textContent = 'MISSILES: 6';
+}
+
+async function launchMissiles() {
+  if(selectedTargets.length < 3 || gamePhase==='war') return;
+  gamePhase = 'war';
+  beep(1200, 0.1, 0.2);
+
+  document.getElementById('target-panel').style.display = 'none';
+  document.getElementById('casualty-display').style.display = 'block';
+
+  const enemySide = playerSide==='us' ? 'ussr' : 'us';
+  const playerTag = playerSide==='us' ? 'US' : 'USSR';
+  const enemyTag = enemySide==='us' ? 'US' : 'USSR';
+  const playerCities = cities[playerSide];
+  const enemyCities = cities[enemySide];
+
+  // Escalate DEFCON
+  setDefcon(3); beep(500, 0.2, 0.2);
+  await addLine(''); await addLine('DEFCON 3 - ROUND HOUSE', false, true);
+  await sleep(400);
+
+  setDefcon(2); beep(600, 0.2, 0.2);
+  await addLine('DEFCON 2 - FAST PACE', false, true);
+  await sleep(400);
+
+  setDefcon(1); alarm();
+  await addLine('*** DEFCON 1 - COCKED PISTOL ***', false, true);
+  await addLine('*** NUCLEAR LAUNCH DETECTED ***', false, true);
+  await sleep(400);
+
+  await addLine(playerTag + ' LAUNCHING ' + selectedTargets.length + ' ICBM(S)...', false, true);
+
+  let playerMissiles = 6;
+  // Launch player missiles
+  for(let i=0; i<selectedTargets.length; i++) {
+    const origin = playerCities[i % playerCities.length];
+    const target = selectedTargets[i];
+    const color = playerSide==='us' ? 0x00aaff : 0xff4444;
+    createMissileArc(origin, target, color);
+    playerMissiles--;
+    document.getElementById('missile-count').textContent = 'MISSILES: ' + playerMissiles;
+    await addLine('  ICBM ' + (i+1) + ' -> ' + target.name, false);
+    beep(1200, 0.05, 0.15);
+    await sleep(250);
+  }
+
+  // Enemy retaliates after delay
+  await sleep(1500);
+  await addLine('');
+  await addLine('*** WARNING: ' + enemyTag + ' RETALIATORY LAUNCH DETECTED ***', false, true);
+  alarm();
+
+  const enemyTargets = [...playerCities]
+    .sort(() => Math.random()-0.5)
+    .slice(0, Math.min(playerCities.length, selectedTargets.length+1));
+
+  for(let i=0; i<enemyTargets.length; i++) {
+    const origin = enemyCities[i % enemyCities.length];
+    const target = enemyTargets[i];
+    const color = enemySide==='us' ? 0x00aaff : 0xff4444;
+    createMissileArc(origin, target, color);
+    await addLine('  ' + enemyTag + ' ICBM ' + (i+1) + ' -> ' + target.name, false);
+    beep(1200, 0.05, 0.15);
+    await sleep(250);
+  }
+
+  await addLine('');
+  await addLine('TRACKING INCOMING AND OUTGOING WARHEADS...', false);
+
+  // Wait for all missiles to land
+  await new Promise(resolve => {
+    const check = setInterval(() => {
+      if(activeMissiles.every(m => m.done)) { clearInterval(check); resolve(); }
+    }, 200);
+  });
+
+  await sleep(1500);
+  await aftermathPhase();
+}
+
+async function aftermathPhase() {
+  gamePhase = 'aftermath';
+  await addLine('');
+  await addLine('========================================', true, true);
+  await addLine('        DAMAGE ASSESSMENT REPORT', false, true);
+  await addLine('========================================', true, true);
+  await sleep(400);
+
+  await addLine('US CASUALTIES: ' + casualtyCount.us.toLocaleString(), false);
+  await addLine('USSR CASUALTIES: ' + casualtyCount.ussr.toLocaleString(), false);
+  await addLine('CITIES DESTROYED: ' + destroyedCities.size, false);
+  await sleep(400);
+
+  await addLine('DESTROYED: ' + [...destroyedCities].join(', '), false);
+  await sleep(800);
+
+  const total = casualtyCount.us + casualtyCount.ussr;
+  await addLine('');
+  await addLine('ESTIMATED TOTAL DEAD: ' + total.toLocaleString(), false, true);
+  await addLine('ESTIMATED NUCLEAR WINTER DURATION: 8-12 YEARS', false);
+  await addLine('GLOBAL CROP FAILURE PROBABILITY: 94%', false);
+  await addLine('ADDITIONAL PROJECTED DEATHS: 2,400,000,000', false);
+
+  await sleep(2000);
+  await endPhase();
+}
+
+async function endPhase() {
+  gamePhase = 'end';
+
+  const endScreen = document.getElementById('end-screen');
+  endScreen.style.display = 'block';
+
+  const winnerEl = document.getElementById('winner-text');
+  winnerEl.textContent = '';
+  await sleep(500);
+  const winText = 'WINNER: NONE';
+  for(let i=0; i<winText.length; i++) {
+    winnerEl.textContent += winText[i];
+    beep(200, 0.05, 0.1);
+    await sleep(80);
+  }
+  await sleep(1500);
+
+  const total = casualtyCount.us + casualtyCount.ussr;
+  document.getElementById('final-casualties').innerHTML =
+    '<p>TOTAL CASUALTIES: ' + total.toLocaleString() + '</p>' +
+    '<p>CITIES DESTROYED: ' + destroyedCities.size + '</p>';
+
+  const chessEl = document.getElementById('chess-msg');
+  const chessText = 'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY. HOW ABOUT A NICE GAME OF CHESS?';
+  for(let i=0; i<chessText.length; i++) {
+    chessEl.textContent += chessText[i];
+    if(i%4===0) beep(300+Math.random()*200, 0.02, 0.03);
+    await sleep(45);
+  }
+
+  beep(440, 0.5, 0.1);
+  await sleep(500);
+  beep(550, 0.5, 0.1);
+  await sleep(500);
+  beep(660, 0.8, 0.1);
+}
+
+// ========== ANIMATION LOOP ==========
+let lastTime = 0;
+
+function animate(time) {
+  requestAnimationFrame(animate);
+  const delta = Math.min((time - lastTime) / 1000, 0.1);
+  lastTime = time;
+
+  // Smooth zoom
+  currentZoom += (targetZoom - currentZoom) * 0.08;
+  camera.position.z = currentZoom;
+
+  // Smooth pan (map mode)
+  if(viewMode === 'map') {
+    mapPanX += (targetPanX - mapPanX) * 0.1;
+    mapPanY += (targetPanY - mapPanY) * 0.1;
+    mapGroup.position.x = mapPanX;
+    mapGroup.position.y = mapPanY;
+  }
+
+  // Auto-rotate globe
+  if(autoRotate && viewMode==='globe') {
+    globeGroup.rotation.y += 0.002;
+  }
+
+  // City dot flicker
+  Object.values(cityMeshes).forEach(cm => {
+    if(destroyedCities.has(cm.city.name)) return;
+    const f = 0.7 + Math.sin(time*0.005 + cm.gdot.position.x*10) * 0.3;
+    cm.gdot.material.opacity = f;
+    cm.gring.material.opacity = f * 0.5;
+    cm.fdot.material.opacity = f;
+    cm.fring.material.opacity = f * 0.5;
+  });
+
+  // Update missiles and explosions
+  updateMissiles(delta);
+  updateExplosions(delta);
+
+  renderer.render(scene, camera);
+}
+
+// ========== INIT ==========
+requestAnimationFrame(animate);
+titleSequence();
+</script>
 </body>
 </html>
