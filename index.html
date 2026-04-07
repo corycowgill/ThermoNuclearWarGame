@@ -99,15 +99,19 @@ body{background:#000;color:#00ff41;font-family:'Share Tech Mono',monospace;overf
 </div>
 <div id="casualty-display"><h4>CASUALTIES</h4><div id="cas-content"></div></div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 "use strict";
 // ========== AUDIO ==========
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function resumeAudio(){if(audioCtx.state==='suspended')audioCtx.resume();}
+let audioCtx = null;
+function resumeAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+}
 function beep(freq,dur,vol){
   freq=freq||800;dur=dur||0.08;vol=vol||0.15;
-  resumeAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  try{ resumeAudio(); } catch(e){ return; }
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type='square';o.frequency.value=freq;g.gain.setValueAtTime(vol,audioCtx.currentTime);
   g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
   o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
@@ -117,7 +121,7 @@ function alarm(){
   for(let i=0;i<6;i++){setTimeout(()=>beep(600,0.15,0.2),i*300);setTimeout(()=>beep(900,0.15,0.2),i*300+150);}
 }
 function rumble(dur){
-  dur=dur||1.5;resumeAudio();
+  dur=dur||1.5;try{ resumeAudio(); } catch(e){ return; }
   const bufSize=audioCtx.sampleRate*dur,buf=audioCtx.createBuffer(1,bufSize,audioCtx.sampleRate);
   const data=buf.getChannelData(0);for(let i=0;i<bufSize;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(bufSize*0.3));
   const src=audioCtx.createBufferSource(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
