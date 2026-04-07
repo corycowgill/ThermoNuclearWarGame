@@ -54,6 +54,12 @@ body{background:#000;color:#00ff41;font-family:'Share Tech Mono',monospace;overf
 #end-screen .chess-msg{color:#00ff41;margin-top:25px;font-size:clamp(14px,1.8vw,18px);border-top:1px solid #004400;padding-top:20px}
 #play-again-btn{margin-top:20px;padding:10px 30px;background:transparent;border:1px solid #00ff41;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:14px;cursor:pointer}
 #play-again-btn:hover{background:#003300}
+/* Player Zero overlay */
+#zero-overlay{display:none;position:absolute;top:50px;left:50%;transform:translateX(-50%);z-index:25;text-align:center;pointer-events:none}
+#zero-overlay h3{font-size:clamp(14px,2vw,20px);color:#ffaa00;text-shadow:0 0 10px #ffaa00;margin-bottom:8px}
+#zero-iteration{font-size:clamp(18px,3vw,32px);color:#ff4444;text-shadow:0 0 15px #ff0000}
+#zero-strategy{font-size:clamp(11px,1.3vw,14px);color:#00ff41;margin-top:6px;opacity:0.8}
+#zero-speed{font-size:clamp(10px,1.1vw,12px);color:#ffaa00;margin-top:4px}
 #casualty-display{display:none;position:absolute;top:50px;right:10px;background:rgba(0,0,0,0.9);border:1px solid #440000;padding:12px;font-size:clamp(11px,1.2vw,13px);min-width:180px;max-width:240px;z-index:20}
 #casualty-display h4{color:#ff4444;margin-bottom:8px;text-align:center;font-size:clamp(12px,1.3vw,15px)}
 .cas-line{margin:3px 0;display:flex;justify-content:space-between;gap:8px}
@@ -82,7 +88,7 @@ body{background:#000;color:#00ff41;font-family:'Share Tech Mono',monospace;overf
 <div id="main-area">
 <div id="center-panel">
 <div id="title-screen"><h1 class="glow-text" id="title-text"></h1><h2 id="subtitle-text"></h2><div id="start-prompt" style="display:none"><br><span class="blink">[ PRESS ANY KEY OR TAP TO CONTINUE ]</span></div></div>
-<div id="side-select"><h3>WHICH SIDE DO YOU WANT?</h3><button class="side-btn" onclick="selectSide('us')">1. UNITED STATES</button><button class="side-btn" onclick="selectSide('ussr')">2. SOVIET UNION</button></div>
+<div id="side-select"><h3>WHICH SIDE DO YOU WANT?</h3><button class="side-btn" onclick="selectSide('us')">1. UNITED STATES</button><button class="side-btn" onclick="selectSide('ussr')">2. SOVIET UNION</button><button class="side-btn" onclick="selectSide('zero')" style="margin-top:20px;border-color:#ffaa00;color:#ffaa00">0. PLAYER ZERO [WOPR vs WOPR]</button></div>
 <div id="target-panel"><h3 id="target-title">SELECT TARGETS (3-6)</h3><div id="target-list"></div><button id="launch-btn" onclick="launchMissiles()">*** LAUNCH ***</button></div>
 <div id="end-screen"><h2 id="winner-text"></h2><div id="final-casualties"></div><p class="chess-msg" id="chess-msg"></p><button id="play-again-btn" onclick="location.reload()">PLAY AGAIN</button></div>
 </div>
@@ -98,6 +104,7 @@ body{background:#000;color:#00ff41;font-family:'Share Tech Mono',monospace;overf
 </div>
 </div>
 <div id="casualty-display"><h4>CASUALTIES</h4><div id="cas-content"></div></div>
+<div id="zero-overlay"><h3>WOPR SIMULATION</h3><div id="zero-iteration">SCENARIO 1</div><div id="zero-strategy"></div><div id="zero-speed"></div></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -154,7 +161,25 @@ const cities = {
     {name:'LOS ANGELES',lat:34.05,lng:-118.24,pop:13200000},
     {name:'CHICAGO',lat:41.88,lng:-87.63,pop:9500000},
     {name:'HOUSTON',lat:29.76,lng:-95.37,pop:6300000},
-    {name:'SEATTLE',lat:47.6,lng:-122.33,pop:3900000}
+    {name:'SEATTLE',lat:47.6,lng:-122.33,pop:3900000},
+    {name:'PHILADELPHIA',lat:39.95,lng:-75.17,pop:5700000},
+    {name:'SAN FRANCISCO',lat:37.77,lng:-122.42,pop:4700000},
+    {name:'BOSTON',lat:42.36,lng:-71.06,pop:4900000},
+    {name:'DALLAS',lat:32.78,lng:-96.8,pop:7600000},
+    {name:'DETROIT',lat:42.33,lng:-83.05,pop:3500000},
+    {name:'ATLANTA',lat:33.75,lng:-84.39,pop:6100000},
+    {name:'MIAMI',lat:25.76,lng:-80.19,pop:6200000},
+    {name:'DENVER',lat:39.74,lng:-104.99,pop:2900000},
+    {name:'PHOENIX',lat:33.45,lng:-112.07,pop:4900000},
+    {name:'MINNEAPOLIS',lat:44.98,lng:-93.27,pop:3600000},
+    {name:'SAN DIEGO',lat:32.72,lng:-117.16,pop:3300000},
+    {name:'ST LOUIS',lat:38.63,lng:-90.2,pop:2800000},
+    {name:'PITTSBURGH',lat:40.44,lng:-79.99,pop:2300000},
+    {name:'OMAHA',lat:41.26,lng:-95.94,pop:950000},
+    {name:'COLORADO SPRINGS',lat:38.83,lng:-104.82,pop:750000},
+    {name:'NORFOLK',lat:36.85,lng:-76.29,pop:1800000},
+    {name:'HONOLULU',lat:21.31,lng:-157.86,pop:1000000},
+    {name:'ANCHORAGE',lat:61.22,lng:-149.9,pop:290000}
   ],
   ussr: [
     {name:'MOSCOW',lat:55.75,lng:37.62,pop:12500000},
@@ -162,7 +187,25 @@ const cities = {
     {name:'KIEV',lat:50.45,lng:30.52,pop:3000000},
     {name:'STALINGRAD',lat:48.72,lng:44.5,pop:1000000},
     {name:'NOVOSIBIRSK',lat:55.03,lng:82.92,pop:1600000},
-    {name:'VLADIVOSTOK',lat:43.12,lng:131.89,pop:600000}
+    {name:'VLADIVOSTOK',lat:43.12,lng:131.89,pop:600000},
+    {name:'SVERDLOVSK',lat:56.84,lng:60.6,pop:1500000},
+    {name:'MINSK',lat:53.9,lng:27.57,pop:2000000},
+    {name:'GORKY',lat:56.33,lng:44.0,pop:1400000},
+    {name:'TASHKENT',lat:41.3,lng:69.28,pop:2300000},
+    {name:'KHARKOV',lat:49.99,lng:36.23,pop:1600000},
+    {name:'ODESSA',lat:46.48,lng:30.73,pop:1100000},
+    {name:'TBILISI',lat:41.69,lng:44.83,pop:1200000},
+    {name:'BAKU',lat:40.41,lng:49.87,pop:1800000},
+    {name:'MURMANSK',lat:68.97,lng:33.08,pop:470000},
+    {name:'ARKHANGELSK',lat:64.54,lng:40.54,pop:420000},
+    {name:'CHELYABINSK',lat:55.16,lng:61.4,pop:1100000},
+    {name:'OMSK',lat:54.99,lng:73.37,pop:1150000},
+    {name:'KRASNOYARSK',lat:56.01,lng:92.87,pop:1050000},
+    {name:'IRKUTSK',lat:52.3,lng:104.3,pop:620000},
+    {name:'PETROPAVLOVSK',lat:53.01,lng:158.65,pop:180000},
+    {name:'ALMA ATA',lat:43.24,lng:76.95,pop:1100000},
+    {name:'RIGA',lat:56.95,lng:24.11,pop:900000},
+    {name:'SEVASTOPOL',lat:44.62,lng:33.52,pop:440000}
   ]
 };
 
@@ -778,9 +821,15 @@ function selectSide(side) {
   beep(1000, 0.1, 0.15);
   playerSide = side;
   document.getElementById('side-select').style.display = 'none';
-  document.getElementById('side-label').textContent =
-    (side==='us' ? 'US' : 'USSR') + ' STRATEGIC COMMAND';
-  strategyPhase();
+
+  if(side === 'zero') {
+    document.getElementById('side-label').textContent = 'WOPR AUTONOMOUS MODE';
+    playerZeroMode();
+  } else {
+    document.getElementById('side-label').textContent =
+      (side==='us' ? 'US' : 'USSR') + ' STRATEGIC COMMAND';
+    strategyPhase();
+  }
 }
 
 async function strategyPhase() {
@@ -973,6 +1022,223 @@ async function endPhase() {
   beep(550, 0.5, 0.1);
   await sleep(500);
   beep(660, 0.8, 0.1);
+}
+
+// ========== PLAYER ZERO MODE ==========
+const STRATEGIES = [
+  'FIRST STRIKE - DECAPITATION','COUNTERFORCE - MILITARY TARGETS','COUNTERVALUE - POPULATION CENTERS',
+  'MASSIVE RETALIATION','FLEXIBLE RESPONSE','LAUNCH ON WARNING','DEAD HAND PROTOCOL',
+  'SPASM ATTACK','GRADUATED ESCALATION','SURGICAL FIRST STRIKE','CARPET NUCLEAR',
+  'SECOND STRIKE RESERVE','PREEMPTIVE COUNTERFORCE','THEATER NUCLEAR WAR',
+  'DEEP STRIKE DOCTRINE','COUNTERFORCE COERCION','MINIMUM DETERRENCE',
+  'EXTENDED DETERRENCE','NO FIRST USE VIOLATION','PROMPT GLOBAL STRIKE',
+  'ESCALATE TO DEESCALATE','NUCLEAR WARFIGHTING','DECAPITATION STRIKE',
+  'TRIAD SATURATION','FIRST STRIKE ADVANTAGE','MUTUALLY ASSURED DESTRUCTION'
+];
+
+let zeroRunning = false;
+let zeroAbort = false;
+
+function resetGameState() {
+  // Clear all missiles from scene
+  activeMissiles.forEach(m => {
+    globeGroup.remove(m.gTrailLine); globeGroup.remove(m.gHead);
+    mapGroup.remove(m.fTrailLine); mapGroup.remove(m.fHead);
+  });
+  activeMissiles = [];
+
+  // Clear explosions
+  explosionsList.forEach(exp => {
+    if(!exp.done) {
+      globeGroup.remove(exp.gFlash); exp.gRings.forEach(r => globeGroup.remove(r.mesh));
+      mapGroup.remove(exp.fFlash); exp.fRings.forEach(r => mapGroup.remove(r.mesh));
+    }
+  });
+  explosionsList = [];
+
+  // Reset city visuals
+  Object.values(cityMeshes).forEach(cm => {
+    const c = cm.side==='us' ? 0x00aaff : 0xff4444;
+    cm.gdot.material.color.setHex(c);
+    cm.gring.material.color.setHex(c);
+    cm.fdot.material.color.setHex(c);
+    cm.fring.material.color.setHex(c);
+  });
+
+  // Reset state
+  casualtyCount = {us:0, ussr:0};
+  destroyedCities = new Set();
+  selectedTargets = [];
+  defconLevel = 5;
+}
+
+// Remove scars from globe/map between iterations
+function clearScars() {
+  // Remove scar meshes (spheres with color 0x441100)
+  const toRemoveGlobe = [];
+  const toRemoveMap = [];
+  globeGroup.children.forEach(c => {
+    if(c.material && c.material.color && c.material.color.getHex() === 0x441100) toRemoveGlobe.push(c);
+  });
+  mapGroup.children.forEach(c => {
+    if(c.material && c.material.color && c.material.color.getHex() === 0x441100) toRemoveMap.push(c);
+  });
+  toRemoveGlobe.forEach(c => globeGroup.remove(c));
+  toRemoveMap.forEach(c => mapGroup.remove(c));
+}
+
+async function playerZeroMode() {
+  zeroRunning = true;
+  zeroAbort = false;
+  gamePhase = 'war';
+
+  document.getElementById('zero-overlay').style.display = 'block';
+  document.getElementById('casualty-display').style.display = 'block';
+
+  await addLine('WOPR AUTONOMOUS MODE ACTIVATED', false, true);
+  await sleep(300);
+  await addLine('RUNNING ALL POSSIBLE SCENARIOS...', false, true);
+  await sleep(300);
+  await addLine('OBJECTIVE: FIND WINNING STRATEGY', false, true);
+  await sleep(500);
+  setDefcon(1);
+
+  let iteration = 0;
+  let baseDelay = 2500; // ms per scenario, gets faster
+  const totalIterations = STRATEGIES.length;
+
+  for(let i = 0; i < totalIterations && !zeroAbort; i++) {
+    iteration = i + 1;
+    const strategy = STRATEGIES[i];
+    const speed = Math.max(150, baseDelay);
+
+    // Update overlay
+    document.getElementById('zero-iteration').textContent = 'SCENARIO ' + iteration + ' / ' + totalIterations;
+    document.getElementById('zero-strategy').textContent = strategy;
+    document.getElementById('zero-speed').textContent = 'CYCLE TIME: ' + (speed/1000).toFixed(1) + 's';
+
+    // Reset for new iteration
+    resetGameState();
+    clearScars();
+    updateCasualtyDisplay();
+
+    // Pick random targets for each side
+    const numTargets = Math.min(3 + Math.floor(i / 3), 12);
+    const usTargets = [...cities.ussr].sort(() => Math.random()-0.5).slice(0, numTargets);
+    const ussrTargets = [...cities.us].sort(() => Math.random()-0.5).slice(0, numTargets);
+
+    // Missile speed scales up with iteration
+    const missileSpeedMult = 1 + (i * 0.5);
+
+    // Launch US missiles
+    for(let j=0; j<usTargets.length; j++) {
+      const origin = cities.us[j % cities.us.length];
+      const m = createMissileArc(origin, usTargets[j], 0x00aaff);
+      m.speed = (0.012 + Math.random()*0.005) * missileSpeedMult;
+    }
+
+    // Launch USSR missiles
+    for(let j=0; j<ussrTargets.length; j++) {
+      const origin = cities.ussr[j % cities.ussr.length];
+      const m = createMissileArc(origin, ussrTargets[j], 0xff4444);
+      m.speed = (0.012 + Math.random()*0.005) * missileSpeedMult;
+    }
+
+    // Terminal output (fast, instant after first few)
+    if(i < 4) {
+      await addLine('SCENARIO ' + iteration + ': ' + strategy, false, true);
+    } else {
+      await addLine('SCENARIO ' + iteration + ': ' + strategy, true, true);
+    }
+
+    // Wait for missiles or timeout
+    const waitTime = Math.min(speed, 8000);
+    await Promise.race([
+      new Promise(resolve => {
+        const check = setInterval(() => {
+          if(activeMissiles.every(m => m.done)) { clearInterval(check); resolve(); }
+        }, 50);
+      }),
+      sleep(waitTime)
+    ]);
+
+    // Brief pause to see result
+    const resultPause = Math.max(50, speed * 0.3);
+    await sleep(resultPause);
+
+    // Log result
+    const total = casualtyCount.us + casualtyCount.ussr;
+    if(i < 6) {
+      await addLine('  RESULT: ' + total.toLocaleString() + ' DEAD - WINNER: NONE', i<3?false:true);
+    } else {
+      await addLine('  >> ' + total.toLocaleString() + ' DEAD - NO WINNER', true);
+    }
+
+    // Accelerate
+    baseDelay = Math.max(150, baseDelay * 0.78);
+
+    // Alarm sounds for early iterations
+    if(i < 3) alarm();
+    if(i < 6) beep(200, 0.1, 0.1);
+  }
+
+  // ===== WOPR REALIZES =====
+  await sleep(800);
+  resetGameState();
+  clearScars();
+
+  // Dramatic pause
+  document.getElementById('zero-overlay').style.display = 'none';
+  document.getElementById('casualty-display').style.display = 'none';
+  terminalEl.innerHTML = '';
+
+  setDefcon(5);
+  document.getElementById('defcon-display').className = 'defcon defcon-5';
+
+  await sleep(1500);
+  await addLine('');
+  await addLine('========================================', false, true);
+  await addLine('  WOPR ANALYSIS COMPLETE', false, true);
+  await addLine('  ' + totalIterations + ' SCENARIOS PROCESSED', false, true);
+  await addLine('  WINNING STRATEGIES FOUND: 0', false, true);
+  await addLine('========================================', false, true);
+  await sleep(2000);
+
+  // The famous moment
+  const endScreen = document.getElementById('end-screen');
+  endScreen.style.display = 'block';
+
+  const winnerEl = document.getElementById('winner-text');
+  winnerEl.textContent = '';
+  await sleep(500);
+  const winText = 'WINNER: NONE';
+  for(let j=0; j<winText.length; j++) {
+    winnerEl.textContent += winText[j];
+    beep(200, 0.05, 0.1);
+    await sleep(120);
+  }
+  await sleep(2500);
+
+  document.getElementById('final-casualties').innerHTML =
+    '<p>SCENARIOS TESTED: ' + totalIterations + '</p>' +
+    '<p>WINNING SCENARIOS: 0</p>';
+
+  const chessEl = document.getElementById('chess-msg');
+  const chessText = 'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY. HOW ABOUT A NICE GAME OF CHESS?';
+  for(let j=0; j<chessText.length; j++) {
+    chessEl.textContent += chessText[j];
+    if(j%4===0) beep(300+Math.random()*200, 0.02, 0.03);
+    await sleep(55);
+  }
+
+  beep(440, 0.5, 0.1);
+  await sleep(500);
+  beep(550, 0.5, 0.1);
+  await sleep(500);
+  beep(660, 0.8, 0.1);
+
+  zeroRunning = false;
+  gamePhase = 'end';
 }
 
 // ========== ANIMATION LOOP ==========
