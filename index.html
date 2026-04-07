@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLOBAL THERMONUCLEAR WAR</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="crt">
+  <div id="game-container">
+
+    <!-- UI overlay on top of the 3D globe -->
+    <div id="ui-overlay">
+
+      <!-- Top status bar -->
+      <div id="status-bar">
+        <div id="defcon" class="defcon5">DEFCON 5</div>
+        <div id="clock"></div>
+        <div id="missile-count">MISSILES: --</div>
+      </div>
+
+      <!-- Live casualty counter -->
+      <div id="score-display">
+        <div id="us-casualties">US CASUALTIES: 0</div>
+        <div id="ussr-casualties">USSR CASUALTIES: 0</div>
+        <div id="cities-destroyed">CITIES DESTROYED: 0</div>
+      </div>
+
+      <!-- Target selection panel -->
+      <div id="side-panel">
+        <h3>SELECT TARGETS</h3>
+        <div id="target-list"></div>
+        <button id="launch-btn">LAUNCH MISSILES</button>
+      </div>
+
+      <!-- Terminal output -->
+      <div id="terminal"></div>
+    </div>
+
+    <!-- Title / intro screen -->
+    <div id="title-screen">
+      <div id="title-text"></div>
+      <div id="subtitle-text"></div>
+      <div id="choice-panel">
+        <p>WHICH SIDE DO YOU WANT?</p>
+        <button class="choice-btn" data-side="us">1. UNITED STATES</button>
+        <button class="choice-btn" data-side="ussr">2. SOVIET UNION</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Game modules (ES modules) -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
