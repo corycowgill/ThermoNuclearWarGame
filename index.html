@@ -40,13 +40,14 @@ body{background:#000;color:#00ff41;font-family:'Share Tech Mono',monospace;overf
 #side-select h3{margin-bottom:20px;text-align:center;font-size:clamp(14px,2vw,18px)}
 .side-btn{display:block;width:100%;padding:12px 20px;margin:10px 0;background:transparent;border:1px solid #00ff41;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:clamp(13px,1.5vw,16px);cursor:pointer;text-align:left;transition:all 0.2s}
 .side-btn:hover,.side-btn:active{background:#003300;box-shadow:0 0 15px rgba(0,255,65,0.3)}
-#target-panel{display:none;text-align:left;background:rgba(0,0,0,0.9);border:1px solid #004400;padding:clamp(12px,2vw,20px);max-width:550px;margin:0 auto;max-height:70vh;overflow-y:auto}
-#target-panel h3{margin-bottom:15px;text-align:center;font-size:clamp(13px,1.8vw,16px)}
+#target-panel{display:none;text-align:left;background:rgba(0,0,0,0.9);border:1px solid #004400;padding:clamp(12px,2vw,20px);max-width:550px;margin:0 auto;max-height:70vh;overflow-y:hidden;display:none;flex-direction:column}
+#target-panel h3{margin-bottom:15px;text-align:center;font-size:clamp(13px,1.8vw,16px);flex-shrink:0}
+#target-list{overflow-y:auto;flex:1;max-height:45vh}
 .target-btn{display:block;width:100%;padding:8px 15px;margin:5px 0;background:transparent;border:1px solid #003300;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:clamp(12px,1.3vw,14px);cursor:pointer;text-align:left;transition:all 0.2s}
 .target-btn:hover,.target-btn:active{background:#002200;border-color:#00ff41}
 .target-btn.selected{background:#004400;border-color:#00ff41;box-shadow:0 0 8px rgba(0,255,65,0.3)}
 .target-btn.selected::after{content:' [TARGETED]';color:#ff4444}
-#launch-btn{display:none;margin:15px auto;padding:12px 40px;background:#330000;border:2px solid #ff0000;color:#ff0000;font-family:'Share Tech Mono',monospace;font-size:clamp(14px,1.5vw,16px);cursor:pointer;text-shadow:0 0 8px #ff0000;transition:all 0.2s}
+#launch-btn{display:none;margin:15px auto 0;padding:12px 40px;background:#330000;border:2px solid #ff0000;color:#ff0000;font-family:'Share Tech Mono',monospace;font-size:clamp(14px,1.5vw,16px);cursor:pointer;text-shadow:0 0 8px #ff0000;transition:all 0.2s;flex-shrink:0}
 #launch-btn:hover,#launch-btn:active{background:#550000;box-shadow:0 0 20px rgba(255,0,0,0.5)}
 #end-screen{display:none;text-align:center;background:rgba(0,0,0,0.9);padding:clamp(20px,3vw,40px);max-width:650px;margin:0 auto;border:1px solid #004400}
 #end-screen h2{font-size:clamp(20px,3vw,28px);margin-bottom:20px;color:#ff0000;text-shadow:0 0 15px #ff0000}
@@ -854,7 +855,7 @@ async function strategyPhase() {
 
   // Show target panel
   const panel = document.getElementById('target-panel');
-  panel.style.display = 'block';
+  panel.style.display = 'flex';
   const list = document.getElementById('target-list');
   list.innerHTML = '';
 
