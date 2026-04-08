@@ -1027,28 +1027,64 @@ async function endPhase() {
 
 // ========== PLAYER ZERO MODE ==========
 const STRATEGIES = [
-  'FIRST STRIKE - DECAPITATION','COUNTERFORCE - MILITARY TARGETS','COUNTERVALUE - POPULATION CENTERS',
-  'MASSIVE RETALIATION','FLEXIBLE RESPONSE','LAUNCH ON WARNING','DEAD HAND PROTOCOL',
-  'SPASM ATTACK','GRADUATED ESCALATION','SURGICAL FIRST STRIKE','CARPET NUCLEAR',
-  'SECOND STRIKE RESERVE','PREEMPTIVE COUNTERFORCE','THEATER NUCLEAR WAR',
-  'DEEP STRIKE DOCTRINE','COUNTERFORCE COERCION','MINIMUM DETERRENCE',
-  'EXTENDED DETERRENCE','NO FIRST USE VIOLATION','PROMPT GLOBAL STRIKE',
-  'ESCALATE TO DEESCALATE','NUCLEAR WARFIGHTING','DECAPITATION STRIKE',
-  'TRIAD SATURATION','FIRST STRIKE ADVANTAGE','MUTUALLY ASSURED DESTRUCTION'
+  'US FIRST STRIKE - DECAPITATION','USSR FIRST STRIKE - DECAPITATION',
+  'US COUNTERFORCE - MILITARY TARGETS','USSR COUNTERFORCE - MILITARY TARGETS',
+  'US COUNTERVALUE - POPULATION CENTERS','USSR COUNTERVALUE - POPULATION CENTERS',
+  'US MASSIVE RETALIATION','USSR MASSIVE RETALIATION',
+  'NATO FLEXIBLE RESPONSE','WARSAW PACT FLEXIBLE RESPONSE',
+  'US LAUNCH ON WARNING','USSR LAUNCH ON WARNING',
+  'US DEAD HAND PROTOCOL','USSR DEAD HAND PROTOCOL',
+  'US SPASM ATTACK','USSR SPASM ATTACK',
+  'US GRADUATED ESCALATION','USSR GRADUATED ESCALATION',
+  'US SURGICAL FIRST STRIKE','USSR SURGICAL FIRST STRIKE',
+  'NATO DEEP STRIKE','WARSAW PACT DEEP STRIKE',
+  'US SECOND STRIKE RESERVE','USSR SECOND STRIKE RESERVE',
+  'US PREEMPTIVE COUNTERFORCE','USSR PREEMPTIVE COUNTERFORCE',
+  'NATO THEATER NUCLEAR WAR','WARSAW PACT THEATER NUCLEAR WAR',
+  'US COUNTERFORCE COERCION','USSR COUNTERFORCE COERCION',
+  'US MINIMUM DETERRENCE','USSR MINIMUM DETERRENCE',
+  'US EXTENDED DETERRENCE','USSR EXTENDED DETERRENCE',
+  'US NO FIRST USE VIOLATION','USSR NO FIRST USE VIOLATION',
+  'US PROMPT GLOBAL STRIKE','USSR PROMPT GLOBAL STRIKE',
+  'US ESCALATE TO DEESCALATE','USSR ESCALATE TO DEESCALATE',
+  'US NUCLEAR WARFIGHTING','USSR NUCLEAR WARFIGHTING',
+  'US TRIAD SATURATION ALPHA','USSR TRIAD SATURATION ALPHA',
+  'US TRIAD SATURATION BETA','USSR TRIAD SATURATION BETA',
+  'US ICBM FIRST WAVE','USSR ICBM FIRST WAVE',
+  'US SLBM SURPRISE LAUNCH','USSR SLBM SURPRISE LAUNCH',
+  'US BOMBER PENETRATION','USSR BOMBER PENETRATION',
+  'US DEPRESSED TRAJECTORY','USSR DEPRESSED TRAJECTORY',
+  'US FRACTIONAL ORBITAL STRIKE','USSR FRACTIONAL ORBITAL STRIKE',
+  'US LIMITED EXCHANGE','USSR LIMITED EXCHANGE',
+  'US FULL EXCHANGE','USSR FULL EXCHANGE',
+  'NATO FORWARD DEFENSE','WARSAW PACT FORWARD OFFENSE',
+  'US COUNTERLEADERSHIP','USSR COUNTERLEADERSHIP',
+  'US ECONOMIC TARGETING','USSR ECONOMIC TARGETING',
+  'US INFRASTRUCTURE STRIKE','USSR INFRASTRUCTURE STRIKE',
+  'US ELECTROMAGNETIC PULSE','USSR ELECTROMAGNETIC PULSE',
+  'US COASTAL TARGETING','USSR COASTAL TARGETING',
+  'US RESERVE WITHHOLD','USSR RESERVE WITHHOLD',
+  'US ESCALATION DOMINANCE','USSR ESCALATION DOMINANCE',
+  'US DAMAGE LIMITATION','USSR DAMAGE LIMITATION',
+  'US ASSURED DESTRUCTION','USSR ASSURED DESTRUCTION',
+  'US SPLENDID FIRST STRIKE','USSR SPLENDID FIRST STRIKE',
+  'US CATALYTIC WAR','USSR CATALYTIC WAR',
+  'DUAL COUNTERFORCE EXCHANGE','DUAL COUNTERVALUE EXCHANGE',
+  'DUAL FULL SATURATION','DUAL SPASM RESPONSE',
+  'MUTUAL FIRST STRIKE','MUTUAL ASSURED DESTRUCTION',
+  'GLOBAL THERMONUCLEAR WAR ALPHA','GLOBAL THERMONUCLEAR WAR BETA',
+  'GLOBAL THERMONUCLEAR WAR GAMMA','GLOBAL THERMONUCLEAR WAR OMEGA'
 ];
 
 let zeroRunning = false;
 let zeroAbort = false;
 
 function resetGameState() {
-  // Clear all missiles from scene
   activeMissiles.forEach(m => {
     globeGroup.remove(m.gTrailLine); globeGroup.remove(m.gHead);
     mapGroup.remove(m.fTrailLine); mapGroup.remove(m.fHead);
   });
   activeMissiles = [];
-
-  // Clear explosions
   explosionsList.forEach(exp => {
     if(!exp.done) {
       globeGroup.remove(exp.gFlash); exp.gRings.forEach(r => globeGroup.remove(r.mesh));
@@ -1056,36 +1092,24 @@ function resetGameState() {
     }
   });
   explosionsList = [];
-
-  // Reset city visuals
   Object.values(cityMeshes).forEach(cm => {
     const c = cm.side==='us' ? 0x00aaff : 0xff4444;
-    cm.gdot.material.color.setHex(c);
-    cm.gring.material.color.setHex(c);
-    cm.fdot.material.color.setHex(c);
-    cm.fring.material.color.setHex(c);
+    cm.gdot.material.color.setHex(c); cm.gring.material.color.setHex(c);
+    cm.fdot.material.color.setHex(c); cm.fring.material.color.setHex(c);
   });
-
-  // Reset state
   casualtyCount = {us:0, ussr:0};
   destroyedCities = new Set();
   selectedTargets = [];
-  defconLevel = 5;
 }
 
-// Remove scars from globe/map between iterations
 function clearScars() {
-  // Remove scar meshes (spheres with color 0x441100)
-  const toRemoveGlobe = [];
-  const toRemoveMap = [];
-  globeGroup.children.forEach(c => {
-    if(c.material && c.material.color && c.material.color.getHex() === 0x441100) toRemoveGlobe.push(c);
+  [globeGroup, mapGroup].forEach(group => {
+    const remove = [];
+    group.children.forEach(c => {
+      if(c.material && c.material.color && c.material.color.getHex() === 0x441100) remove.push(c);
+    });
+    remove.forEach(c => group.remove(c));
   });
-  mapGroup.children.forEach(c => {
-    if(c.material && c.material.color && c.material.color.getHex() === 0x441100) toRemoveMap.push(c);
-  });
-  toRemoveGlobe.forEach(c => globeGroup.remove(c));
-  toRemoveMap.forEach(c => mapGroup.remove(c));
 }
 
 async function playerZeroMode() {
@@ -1098,97 +1122,96 @@ async function playerZeroMode() {
 
   await addLine('WOPR AUTONOMOUS MODE ACTIVATED', false, true);
   await sleep(300);
-  await addLine('RUNNING ALL POSSIBLE SCENARIOS...', false, true);
+  await addLine('RUNNING ALL POSSIBLE ATTACK SCENARIOS...', false, true);
   await sleep(300);
-  await addLine('OBJECTIVE: FIND WINNING STRATEGY', false, true);
+  await addLine('OBJECTIVE: FIND A WINNING STRATEGY', false, true);
   await sleep(500);
   setDefcon(1);
 
-  let iteration = 0;
-  let baseDelay = 2500; // ms per scenario, gets faster
   const totalIterations = STRATEGIES.length;
 
   for(let i = 0; i < totalIterations && !zeroAbort; i++) {
-    iteration = i + 1;
+    const iteration = i + 1;
     const strategy = STRATEGIES[i];
-    const speed = Math.max(150, baseDelay);
+
+    // Exponential acceleration curve: starts slow, gets insanely fast
+    // First 5: ~3s each. By 20: ~1s. By 40: ~300ms. By 60+: ~80ms
+    let cycleTime;
+    if(i < 5)       cycleTime = 3000 - i * 200;
+    else if(i < 15) cycleTime = 2000 * Math.pow(0.82, i - 5);
+    else if(i < 30) cycleTime = 700 * Math.pow(0.88, i - 15);
+    else if(i < 50) cycleTime = 300 * Math.pow(0.93, i - 30);
+    else if(i < 70) cycleTime = 150 * Math.pow(0.96, i - 50);
+    else             cycleTime = 80;
+
+    cycleTime = Math.max(80, Math.floor(cycleTime));
 
     // Update overlay
     document.getElementById('zero-iteration').textContent = 'SCENARIO ' + iteration + ' / ' + totalIterations;
     document.getElementById('zero-strategy').textContent = strategy;
-    document.getElementById('zero-speed').textContent = 'CYCLE TIME: ' + (speed/1000).toFixed(1) + 's';
+    document.getElementById('zero-speed').textContent = 'CYCLE: ' + cycleTime + 'ms';
 
-    // Reset for new iteration
+    // Reset for new scenario
     resetGameState();
     clearScars();
     updateCasualtyDisplay();
 
-    // Pick random targets for each side
-    const numTargets = Math.min(3 + Math.floor(i / 3), 12);
+    // Target count scales up: 3 early, up to full 24 late
+    const numTargets = Math.min(3 + Math.floor(i / 4), 20);
     const usTargets = [...cities.ussr].sort(() => Math.random()-0.5).slice(0, numTargets);
     const ussrTargets = [...cities.us].sort(() => Math.random()-0.5).slice(0, numTargets);
 
-    // Missile speed scales up with iteration
-    const missileSpeedMult = 1 + (i * 0.5);
+    // Missile speed: gets dramatically faster
+    const missileSpeedMult = 1 + i * 0.8;
 
-    // Launch US missiles
+    // Launch both sides
     for(let j=0; j<usTargets.length; j++) {
       const origin = cities.us[j % cities.us.length];
       const m = createMissileArc(origin, usTargets[j], 0x00aaff);
-      m.speed = (0.012 + Math.random()*0.005) * missileSpeedMult;
+      m.speed = (0.015 + Math.random()*0.005) * missileSpeedMult;
     }
-
-    // Launch USSR missiles
     for(let j=0; j<ussrTargets.length; j++) {
       const origin = cities.ussr[j % cities.ussr.length];
       const m = createMissileArc(origin, ussrTargets[j], 0xff4444);
-      m.speed = (0.012 + Math.random()*0.005) * missileSpeedMult;
+      m.speed = (0.015 + Math.random()*0.005) * missileSpeedMult;
     }
 
-    // Terminal output (fast, instant after first few)
+    // Terminal output: typed early, instant mid, skip late
     if(i < 4) {
       await addLine('SCENARIO ' + iteration + ': ' + strategy, false, true);
-    } else {
+    } else if(i < 30) {
       await addLine('SCENARIO ' + iteration + ': ' + strategy, true, true);
+    } else if(i % 3 === 0) {
+      // Only log every 3rd scenario when going super fast
+      await addLine('>> #' + iteration + ' ' + strategy + ' ... WINNER: NONE', true);
     }
 
-    // Wait for missiles or timeout
-    const waitTime = Math.min(speed, 8000);
+    // Wait for missiles or cycle timeout
     await Promise.race([
       new Promise(resolve => {
         const check = setInterval(() => {
           if(activeMissiles.every(m => m.done)) { clearInterval(check); resolve(); }
-        }, 50);
+        }, 30);
       }),
-      sleep(waitTime)
+      sleep(cycleTime)
     ]);
 
-    // Brief pause to see result
-    const resultPause = Math.max(50, speed * 0.3);
+    // Brief result pause (shrinks to near-zero)
+    const resultPause = Math.max(20, cycleTime * 0.2);
     await sleep(resultPause);
 
-    // Log result
-    const total = casualtyCount.us + casualtyCount.ussr;
-    if(i < 6) {
-      await addLine('  RESULT: ' + total.toLocaleString() + ' DEAD - WINNER: NONE', i<3?false:true);
-    } else {
-      await addLine('  >> ' + total.toLocaleString() + ' DEAD - NO WINNER', true);
-    }
-
-    // Accelerate
-    baseDelay = Math.max(150, baseDelay * 0.78);
-
-    // Alarm sounds for early iterations
+    // Sounds: fade out as speed increases
     if(i < 3) alarm();
-    if(i < 6) beep(200, 0.1, 0.1);
+    else if(i < 10) beep(200, 0.1, 0.1);
+    else if(i < 30 && i % 3 === 0) beep(300, 0.03, 0.05);
   }
 
-  // ===== WOPR REALIZES =====
-  await sleep(800);
+  // ===== WOPR STOPS. SILENCE. =====
+  await sleep(600);
   resetGameState();
   clearScars();
+  updateCasualtyDisplay();
 
-  // Dramatic pause
   document.getElementById('zero-overlay').style.display = 'none';
   document.getElementById('casualty-display').style.display = 'none';
   terminalEl.innerHTML = '';
@@ -1196,14 +1219,15 @@ async function playerZeroMode() {
   setDefcon(5);
   document.getElementById('defcon-display').className = 'defcon defcon-5';
 
-  await sleep(1500);
+  // Long dramatic pause - the silence after the storm
+  await sleep(2500);
   await addLine('');
   await addLine('========================================', false, true);
   await addLine('  WOPR ANALYSIS COMPLETE', false, true);
   await addLine('  ' + totalIterations + ' SCENARIOS PROCESSED', false, true);
   await addLine('  WINNING STRATEGIES FOUND: 0', false, true);
   await addLine('========================================', false, true);
-  await sleep(2000);
+  await sleep(2500);
 
   // The famous moment
   const endScreen = document.getElementById('end-screen');
@@ -1285,6 +1309,7 @@ function animate(time) {
 }
 
 // ========== INIT ==========
+setViewMode('map');
 requestAnimationFrame(animate);
 titleSequence();
 </script>
