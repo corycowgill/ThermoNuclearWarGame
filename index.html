@@ -93,8 +93,8 @@ body{background:#000;color:#00ff41;font-family:'Share Tech Mono',monospace;overf
 <div id="end-screen"><h2 id="winner-text"></h2><div id="final-casualties"></div><p class="chess-msg" id="chess-msg"></p><button id="play-again-btn" onclick="location.reload()">PLAY AGAIN</button></div>
 </div>
 <div id="view-controls">
-<button class="view-btn active" id="btn-globe" onclick="setViewMode('globe')">GLOBE</button>
-<button class="view-btn" id="btn-map" onclick="setViewMode('map')">MAP</button>
+<button class="view-btn" id="btn-globe" onclick="setViewMode('globe')">GLOBE</button>
+<button class="view-btn active" id="btn-map" onclick="setViewMode('map')">MAP</button>
 <div id="zoom-controls">
 <button class="view-btn" onclick="zoomIn()">+</button>
 <button class="view-btn" onclick="zoomOut()">&minus;</button>
@@ -146,10 +146,10 @@ let explosionsList=[];
 let casualtyCount={us:0,ussr:0};
 let destroyedCities=new Set();
 let missilesFired={player:0,enemy:0};
-let viewMode='globe'; // 'globe' or 'map'
+let viewMode='map'; // 'globe' or 'map'
 let viewTransition=0; // 0=globe, 1=map, animates between
-let targetZoom=4;
-let currentZoom=4;
+let targetZoom=5;
+let currentZoom=5;
 const MIN_ZOOM=2;
 const MAX_ZOOM=12;
 
@@ -231,11 +231,12 @@ renderer.setClearColor(0x000000);
 
 // All globe objects in this group (rotated together)
 const globeGroup = new THREE.Group();
+globeGroup.visible = false;
 scene.add(globeGroup);
 
 // All flat-map objects in this group (shown/hidden based on mode)
 const mapGroup = new THREE.Group();
-mapGroup.visible = false;
+mapGroup.visible = true;
 scene.add(mapGroup);
 
 const GLOBE_RADIUS = 1.5;
